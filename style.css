@@ -1,0 +1,33 @@
+/* CSS for User Location page */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+  
+  h1, h2 {
+    margin-top: 20px;
+  }
+  
+  #map {
+    height: 400px;
+    width: 100%;
+  }
+  
+  #searchBox {
+    margin-top: 10px;
+    padding: 5px;
+    width: 300px;
+  }
+  
+  #postalOffices {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  #postalOffices li {
+    margin-bottom: 5px;
+  }
+  
+  /* Additional styles can be added here */
+  

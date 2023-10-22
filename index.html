@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>User Location</title>
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    #map {
+      height: 400px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <h1>User Location</h1>
+  <p>IP Address: <span id="ipAddress"></span></p>
+  <button id="getDataButton">Get Data</button>
+  <h2>User Information</h2>
+  <p>Latitude: <span id="latitude"></span></p>
+  <p>Longitude: <span id="longitude"></span></p>
+  <p>City: <span id="city"></span></p>
+  <p>Region: <span id="region"></span></p>
+  <p>Time Zone: <span id="timeZone"></span></p>
+  <h2>Google Maps</h2>
+  <div id="map"></div>
+  <h2>Postal Offices</h2>
+  <input type="text" id="searchBox" placeholder="Search by name or branch office">
+  <ul id="postalOffices"></ul>
+
+  <script>
+    // Get user's IP address
+    fetch('https://api.ipify.org?format=json')
+      .then(response => response.json())
+      .then(data => {
+        const ipAddress = data.ip;
+        document.getElementById('ipAddress').textContent = ipAddress;
+
+        // Get user's location data
+        fetch(`https://ipinfo.io/${ipAddress}/geo`)
+          .then(response => response.json())
+          .then(data => {
+            const { latitude, longitude, city, region, timezone } = data;
+            document.getElementById('latitude').textContent = latitude;
+            document.getElementById('longitude').textContent = longitude;
+            document.getElementById('city').textContent = city;
+            document.getElementById('region').textContent = region;
+            document.getElementById('timeZone').textContent = timezone;
+
+            // Show user's location on Google Maps
+            const map = new google.maps.Map(document.getElementById('map'), {
+              center: { lat: parseFloat(latitude), lng: parseFloat(longitude) },
+              zoom: 12
+            });
+
+            // Get current time based on user's timezone
+            const currentTime = new Date().toLocaleString("en-US", { timeZone: timezone });
+            document.getElementById('timeZone').textContent = currentTime;
+
+            // Get postal offices based on pincode
+            const pincode = data.postal;
+            fetch(`https://api.postalpincode.in/pincode/${pincode}`)
+              .then(response => response.json())
+              .then(data => {
+                const postalOffices = data[0].PostOffice;
+                const postalOfficesList = document.getElementById('postalOffices');
+
+                // Display postal offices
+                postalOffices.forEach(postalOffice => {
+                  const listItem = document.createElement('li');
+                  listItem.textContent = `${postalOffice.Name} - ${postalOffice.BranchType}`;
+                  postalOfficesList.appendChild(listItem);
+                });
+
+                // Filter postal offices by name or branch office
+                const searchBox = document.getElementById('searchBox');
+                searchBox.addEventListener('input', function() {
+                  const searchTerm = searchBox.value.toLowerCase();
+                  const filteredPostalOffices = postalOffices.filter(postalOffice =>
+                    postalOffice.Name.toLowerCase().includes(searchTerm) ||
+                    postalOffice.BranchType.toLowerCase().includes(searchTerm)
+                  );
+
+                  // Clear previous results
+                  postalOfficesList.innerHTML = '';
+
+                  //  filtered postal offices
+                  filteredPostalOffices.forEach(postalOffice => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${postalOffice.Name} - ${postalOffice.BranchType}`;
+                    postalOfficesList.appendChild(listItem);
+                  });
+                });
+              })
+              .catch(error => console.error('Error:', error));
+          })
+          .catch(error => console.error('Error:', error));
+      })
+      .catch(error => console.error('Error:', error));
+  </script>
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD0zjfxCeqe-FR18gm90dhbM9Abl4I6YY0&callback=initMap" async defer></script>
+</body>
+</html>
